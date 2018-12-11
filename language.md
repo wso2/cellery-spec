@@ -232,7 +232,6 @@ cellery:Egress egressA = {
             maxWaitInterval: 20000
         },
         failoverConfig {
-            endpoiint: "bar.com/failover",
             timeOut: 60
         }
     }
@@ -262,7 +261,6 @@ cellery:RetryConfig retryConfig = {
 A `FailoverConfig` represents fail over configurations for an egress endpoint. A `FailoverConfig` is defined as follows;
 ```
 cellery:FailoverConfig failoverConfig = {
-    endpoint: string,
     timeOut: int
 }
 ```
