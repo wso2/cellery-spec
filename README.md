@@ -14,22 +14,27 @@ agile development teams to easily create a composable enterprise in a technology
 ### How does Cellery work? 
 The Cellery Language is a subset of Ballerina and Ballerina extensions. The language allows developers to define cells 
 in a simple, effective and compilation-validated way. The language has an opinionated view of a composable enterprise, 
-with well-defined concepts of control plane, data plane, ingress/egress management and observability. 
+with well-defined concepts of control plane, data plane, ingress/egress management and observability.  
+ 
 The Cellery Language is completely technology neutral. It supports any container runtimes,
 cloud orchestration model, control plane, data plane and gateway. It also enables existing legacy systems as well as
-external systems (including SaaS and partner APIs) to be described as cells.
+external systems (including SaaS and partner APIs) to be described as cells.  
+
 The Cellery tooling compiles and validates the cell definitions written in the Cellery Language. The tool generates an 
 immutable, versioned, compiled representation of the input language, which is called a Cell Image. This file refers 
 to external dependencies; especially container images and it bakes in the specific image ids so that a given version 
-of a cell image will deploy in a consistent immutable way forever.
+of a cell image will deploy in a consistent immutable way forever.  
+
 The deployment definitions works for cloud-native runtimes such as Kubernetes. It also creates well-defined visual 
 representations of the cell. Further tooling will potentially be able to extrapolate the cell 
 interface and dependencies completely. The tooling is a key part of CI/CD pipelines as it can also help build external 
-dependencies such as Dockerfiles.
+dependencies such as Dockerfiles.  
+
 The Cellery language understands that cloud native applications are deployed in multiple environments from integration 
 test through to staging and production, and also aids in patterns such as Blue/Green and Canary deployment.
 The Cellery runtime extensions for different cloud native orchestration systems, enable those systems to directly 
-understand the concept of a cell. In addition, observability allow a cell to be monitored, logged, and traced.
+understand the concept of a cell. In addition, observability allow a cell to be monitored, logged, and traced.  
+
 Cellery can be used standalone, but over time the project will also create a repository manager for cell definitions 
 that can be deployed inside an organisation, run in the cloud and in hybrid scenarios (a.k.a Cellery Central).
 
@@ -58,10 +63,12 @@ Following are the key concepts of Cellery:
 
 #### Cell
 A cell is a collection of components, grouped from design and implementation into deployment. A cell is independently 
-deployable, manageable, and observable.
+deployable, manageable, and observable.  
+
 Components inside the cell can communicate with each other using supported transports for intra-cell communication. 
 External communication must happen through the edge-gateway or proxy, which provides APIs, events, or streams via 
-governed network endpoints using standard network protocols.
+governed network endpoints using standard network protocols.  
+
 A cell can have 1:n components grouped. Components inside the cells are reusable and can be instantiated in multiple 
 cells. The cell should document its offers. The capabilities of a cell must be provided by network accessible endpoints. 
 In addition, if the cell needs access to external dependencies, then these must also be exposed as network endpoints 
@@ -83,7 +90,11 @@ Any interfaces that the components offer that are not made available by the cont
 
 #### Parameters
 A parameter represents an external entity that a particular component require to operate. The parameter can be a 
-environment variable, secret or a configuration map.
+environment variable, secret or a configuration map. Environment variables can be passed into a cell runtime via two ways as given below.  
+
+1) With `-e` inline param when running the cell (e.g: cellery run wso2cellery/test:1.0.0 -e myEnv=test)
+2) Any environment variable starts with `CELLERY`. In that case, users do not need to pass it via inline variable, they 
+can simply export the intended environment variable it and run the cell.
 
 #### API
 An API represents a defined set of functions and procedures that the services of the Components inside a Cell exposes 
@@ -364,7 +375,8 @@ cellery:Component employeeComponent = {
 };
 ```
 
-Note the parameters SALARY_HOST in the Cell definition above. This parameters can be set in the run time of this Cell: 
+Note the parameters SALARY_HOST in the Cell definition above. This parameters can be set in the run time of this Cell. 
+Please refer [parameters](#parameters) section to get more details on how to pass the environment variables. 
 
 ```ballerina
 public function run(cellery:ImageName iName, map<cellery:ImageName> instances) returns error? {
