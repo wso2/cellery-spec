@@ -375,7 +375,8 @@ cellery:Component employeeComponent = {
 };
 ```
 
-Note the parameters SALARY_HOST in the Cell definition above. This parameters can be set in the run time of this Cell: 
+Note the parameters SALARY_HOST in the Cell definition above. This parameters can be set in the run time of this Cell. 
+Please refer [parameters](#parameters) section to get more details on how to pass the environment variables. 
 
 ```ballerina
 public function run(cellery:ImageName iName, map<cellery:ImageName> instances) returns error? {
