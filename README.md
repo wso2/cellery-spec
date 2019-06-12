@@ -181,9 +181,12 @@ cellery:HttpApiIngress employeeIngress = {
 };
 
 public function build(cellery:ImageName iName) returns error? {
-    cellery:ApiDefinition employeeApiDef = (<cellery:ApiDefinition>cellery:readSwaggerFile(
-                                                                        "./resources/employee.swagger.json"));
-    employeeIngress.definition = employeeApiDef;
+    cellery:HttpApiIngress helloAPI = {
+        port: 9090,
+        context: "hello",
+        definition: <cellery:ApiDefinition>cellery:readSwaggerFile("./resources/employee.swagger.json"),
+        expose: "global"
+    };
     ...
 }
 ```
@@ -227,7 +230,6 @@ cellery:Component webComponent = {
                     cert: ""
                 }
             }
-
         }
     }
 };
@@ -247,6 +249,7 @@ public function run(cellery:ImageName iName, map<cellery:ImageName> instance) re
     string tlsCert = readFile(config:getAsString("tls.cert"));
 
     //Assign values to cell->component->ingress
+    cellery:CellImage webCell = check cellery:constructCellImage(untaint iName);
     cellery:WebIngress webUI = <cellery:WebIngress>webCell.components.webComp.ingresses.webUI;
     webUI.gatewayConfig.tls.key = tlsKey;
     webUI.gatewayConfig.tls.cert = tlsCert;
@@ -376,7 +379,6 @@ cellery:Component employeeComponent = {
 ```
 
 Note the parameters SALARY_HOST in the Cell definition above. This parameters can be set in the run time of this Cell. 
-Please refer [parameters](#parameters) section to get more details on how to pass the environment variables. 
 
 ```ballerina
 public function run(cellery:ImageName iName, map<cellery:ImageName> instances) returns error? {
@@ -436,82 +438,85 @@ Employee component:
 import ballerina/io;
 import celleryio/cellery;
 
-int salaryContainerPort = 8080;
+public function build(cellery:ImageName iName) returns error? {
+    int salaryContainerPort = 8080;
 
-// Employee Component
-cellery:Component employeeComponent = {
-    name: "employee",
-    source: {
-        image: "docker.io/celleryio/sampleapp-employee"
-    },
-    ingresses: {
-        employee: <cellery:HttpApiIngress>{
-            port: 8080,
-            context: "employee",
-            expose: "local"
+    // Salary Component
+    cellery:Component salaryComponent = {
+        name: "salary",
+        source: {
+            image: "docker.io/celleryio/sampleapp-salary"
+        },
+        ingresses: {
+            SalaryAPI: <cellery:HttpApiIngress>{
+                port:salaryContainerPort,
+                context: "payroll",
+                definition: {
+                    resources: [
+                        {
+                            path: "salary",
+                            method: "GET"
+                        }
+                    ]
+                },
+                expose: "local"
+            }
+        },
+        labels: {
+            team: "Finance",
+            owner: "Alice"
         }
-    },
-    envVars: {
-        SALARY_HOST: { value: "" },
-        PORT: { value: salaryContainerPort }
-    },
-    labels: {
-        team: "HR"
-    }
-};
+    };
 
-// Salary Component
-cellery:Component salaryComponent = {
-    name: "salary",
-    source: {
-        image: "docker.io/celleryio/sampleapp-salary"
-    },
-    ingresses: {
-        SalaryAPI: <cellery:HttpApiIngress>{
-            port:salaryContainerPort,
-            context: "payroll",
-            definition: {
-                resources: [
-                    {
-                        path: "salary",
-                        method: "GET"
-                    }
-                ]
+    // Employee Component
+    cellery:Component employeeComponent = {
+        name: "employee",
+        source: {
+            image: "docker.io/celleryio/sampleapp-employee"
+        },
+        ingresses: {
+            employee: <cellery:HttpApiIngress>{
+                port: 8080,
+                context: "employee",
+                expose: "local",
+                definition: <cellery:ApiDefinition>cellery:readSwaggerFile("./resources/employee.swagger.json")
+            }
+        },
+        envVars: {
+            SALARY_HOST: {
+                value: cellery:getHost(salaryComponent)
             },
-            expose: "local"
+            PORT: {
+                value: salaryContainerPort
+            }
+        },
+        labels: {
+            team: "HR"
         }
-    },
-    labels: {
-        team: "Finance",
-        owner: "Alice"
-    }
-};
+    };
 
-cellery:CellImage employeeCell = {
-    components: {
-        empComp: employeeComponent,
-        salaryComp: salaryComponent
-    }
-};
-```
+    cellery:CellImage employeeCell = {
+        components: {
+            empComp: employeeComponent,
+            salaryComp: salaryComponent
+        }
+    };
 
-The envVar value is provided in the run method as shown below, which enables the employee component to 
-communicate with the salary component. 
-```ballerina
-public function run(cellery:ImageName iName, map<cellery:ImageName> instances) returns error? {
-    employeeCell.components.empComp.envVars.SALARY_HOST.value = cellery:getHost(untaint iName.instanceName,
-        salaryComponent);
-    return cellery:createInstance(employeeCell, iName);
+    return cellery:createImage(employeeCell, untaint iName);
 }
 ```
+
+The envVar `SALARY_HOST` value is provided at the build time as shown above, which enables the employee component to 
+communicate with the salary component. 
+
 
 ### Inter Cell Communication
 
 In addition to components within a cell, Cells themselves can communicate with each other. This is also achieved 
 via envVars. Two cells can be linked via envVar in the run method. 
 
-When a Cell Image is built it will generate a reference file describing the APIs that are exposed by itself. 
-This cell reference will be installed locally, either when you build or pull the image. This reference can be imported 
+When a Cell Image is built it will generate a reference file describing the APIs/Ports that are exposed by itself. 
+This cell reference will be available locally, either when you build or pull the image. This reference can be imported 
 in another Cell definition which is depending on the former, and can be used to link the two Cells at the runtime. 
 
 Consider following cell definition:
@@ -519,39 +524,37 @@ Consider following cell definition:
 import ballerina/io;
 import celleryio/cellery;
 
-//Stock Component
-cellery:Component stockComponent = {
-    name: "stock",
-    source: {
-        image: "docker.io/celleryio/sampleapp-stock"
-    },
-    ingresses: {
-        stock: <cellery:HttpApiIngress>{ 
-            port: 8080,
-            context: "stock",
-            definition: {
-                resources: [
-                    {
-                        path: "/options",
-                        method: "GET"
-                    }
-                ]
-            },
-            expose: "local"
-        }
-    }
-};
-
-cellery:CellImage stockCell = {
-    components: {
-        stockComp: stockComponent
-    }
-};
-
 public function build(cellery:ImageName iName) returns error? {
-    return cellery:createImage(stockCell, iName);
+    //Build Stock Cell
+    io:println("Building Stock Cell ...");
+    //Stock Component
+    cellery:Component stockComponent = {
+        name: "stock",
+        source: {
+            image: "docker.io/celleryio/sampleapp-stock"
+        },
+        ingresses: {
+            stock: <cellery:HttpApiIngress>{ port: 8080,
+                context: "stock",
+                definition: {
+                    resources: [
+                        {
+                            path: "/options",
+                            method: "GET"
+                        }
+                    ]
+                },
+                expose: "local"
+            }
+        }
+    };
+    cellery:CellImage stockCell = {
+        components: {
+            stockComp: stockComponent
+        }
+    };
+    return cellery:createImage(stockCell, untaint iName);
 }
-
 ```
 
 Generated reference file for above cell definition is as follows: 
@@ -564,62 +567,69 @@ Generated reference file for above cell definition is as follows:
 If a cell component wants to access the stock api, it can be done as below:
 
 ```ballerina
-import ballerina/io;
-import celleryio/cellery;
-//HR component
-cellery:Component hrComponent = {
-    name: "hr",
-    source: {
-        image: "docker.io/celleryio/sampleapp-hr"
-    },
-    ingresses: {
-        "hr": <cellery:HttpApiIngress>{
-            port: 8080,
-            context: "hr-api",
-            definition: {
-                resources: [
-                    {
-                        path: "/",
-                        method: "GET"
-                    }
-                ]
-            },
-            expose: "global"
-        }
-    },
-    envVars: {
-        stock_api_url: { value: "" }
-    },
-    dependencies: {
-        stockCellDep: <cellery:ImageName>{ org: "myorg", name: "stock", ver: "1.0.0" } // dependency as a struct
-    }
-};
-
-// Cell Initialization
-cellery:CellImage hrCell = {
-    components: {
-        hrComp: hrComponent
-    }
-};
-
 public function build(cellery:ImageName iName) returns error? {
-    return cellery:createImage(hrCell, iName);
+    //HR component
+    cellery:Component hrComponent = {
+        name: "hr",
+        source: {
+            image: "docker.io/celleryio/sampleapp-hr"
+        },
+        ingresses: {
+            "hr": <cellery:HttpApiIngress>{
+                port: 8080,
+                context: "hr-api",
+                definition: {
+                    resources: [
+                        {
+                            path: "/",
+                            method: "GET"
+                        }
+                    ]
+                },
+                expose: "global"
+            }
+        },
+        envVars: {
+            stock_api_url: { value: "" }
+        },
+        dependencies: {
+            cells: {
+                stockCellDep: <cellery:ImageName>{ org: "myorg", name: "stock", ver: "1.0.0" } // dependency as a struct
+            }
+        }
+    };
+
+    hrComponent.envVars = {
+        stock_api_url: { value: <string>cellery:getReference(hrComponent, "stockCellDep").stock_api_url }
+    };
+
+    // Cell Initialization
+    cellery:CellImage hrCell = {
+        components: {
+            hrComp: hrComponent
+        }
+    };
+    return cellery:createImage(hrCell, untaint iName);
 }
 
 public function run(cellery:ImageName iName, map<cellery:ImageName> instances) returns error? {
-    //Resolve stock API URL
-    cellery:Reference stockRef = check cellery:getReference(instances.stockCellDep);
-    hrCell.components.hrComp.envVars.stock_api_url.value = <string>stockRef.stock_api_url;
-    return cellery:createInstance(hrCell, iName);
+    cellery:CellImage hrCell = check cellery:constructCellImage(untaint iName);
+    return cellery:createInstance(hrCell, iName, instances);
 }
 ```
-The `hrComponent` depends on the stockCell that is defined earlier. 
-The dependency information are specified as a component attribute.
+ 
+The `hrComponent` depends on the stockCell that is defined earlier. The dependency information are specified as a component attribute.
 ```ballerina
-    stockCellDep: <cellery:ImageName>{ org: "myorg", name: "stock", ver: "1.0.0" }
-```  
+    dependencies: {
+        cells: {
+            stockCellDep: <cellery:ImageName>{ org: "myorg", name: "stock", ver: "1.0.0" } // dependency as a struct
+        }
+    }
+```
 
-Note the run method above, which takes a variable argument map for the references of the dependency cells. 
+`cellery:getReference(hrComponent, "stockCellDep").stock_api_url` method reads the json file and set value with place holder. 
+
+Note the `run` method above, which takes a variable argument map for the references of the dependency cells. 
 These are names of already deployed cell instances, which will be used to resolve the urls and link with this 
 cell instance. As an example, if the stock cell instance name is `stock-app` then the `stockRef.stock_api_url` 
 returns the host name of the running stock cell instance as `http://stock-app--gateway-service:80/stock`.
