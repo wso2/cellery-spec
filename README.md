@@ -5,8 +5,6 @@
   [![GitHub last commit](https://img.shields.io/github/last-commit/cellery-io/spec.svg)](https://github.com/cellery-io/spec/commits/master)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Introduction
-
 ### What is Cellery?
 Cellery is an architectural description language, tooling and extensions for popular cloud-native runtimes that enables 
 agile development teams to easily create a composable enterprise in a technology neutral way.
@@ -100,5 +98,5 @@ as resources (i.e ingresses). These could be made accessible internally or Globa
 A cell can depend on other cells. The components defines a set of cells that it depends on. 
 Celley ensures that the dependencies are met at the runtime. 
 
-## What is Next?
+## What's Next?
 - Check [Cellery syntax](https://github.com/wso2-cellery/sdk/blob/master/docs/cellery-syntax.md) which is based on this specification.
