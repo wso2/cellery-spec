@@ -90,11 +90,7 @@ Any interfaces that the components offer that are not made available by the cont
 
 #### Parameters
 A parameter represents an external entity that a particular component require to operate. The parameter can be a 
-environment variable, secret or a configuration map. Environment variables can be passed into a cell runtime via two ways as given below.  
-
-1) With `-e` inline param when running the cell (e.g: cellery run wso2cellery/test:1.0.0 -e myEnv=test)
-2) Any environment variable starts with `CELLERY`. In that case, users do not need to pass it via inline variable, they 
-can simply export the intended environment variable it and run the cell.
+environment variable, secret or a configuration map. 
 
 #### API
 An API represents a defined set of functions and procedures that the services of the Components inside a Cell exposes 
