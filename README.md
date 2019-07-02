@@ -1,4 +1,4 @@
-# Cellery Specification version 0.2.0
+# Cellery Specification version 0.3.0
 
   [![GitHub (pre-)release](https://img.shields.io/github/release/cellery-io/spec/all.svg)](https://github.com/cellery-io/spec/releases)
   [![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/cellery-io/spec.svg)](https://github.com/cellery-io/spec/releases)
