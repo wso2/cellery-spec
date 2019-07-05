@@ -102,12 +102,12 @@ A component can depend on other cells. The components defines a set of cells/com
 Cellery ensures that the dependencies are met at the runtime.
 
 #### Resources
-When component is defined, it is possible to specify how much CPU and memory (RAM) each component needs. 
+Cellery allows to specify how much CPU and memory (RAM) each component needs. Resources can be specified as requests and limits. 
 When component have resource requests specified, the scheduler can make better decisions about which nodes to place component on.
 And when component have their limits specified, contention for resources on a node can be handled in a specified manner. 
 
 #### Probes
-Liveness and readiness probes can be defined for a component. The probes can be defined by the means of command, http get or as a tcp socket.
+Liveness and readiness probes can be defined for a component. The probes can be defined by the means of command, http-get or as a tcp socket.
 
 #### Scaling 
 Each component within the cells can be scaled up or down. Cellery supports auto scaling with Horizontal pod autoscaler, 
