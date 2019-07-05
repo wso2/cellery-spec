@@ -52,15 +52,15 @@ Cellery overlaps with Docker Compose, Helm and Kubernetes YAML (plus….) Compar
 
 ### Concepts of Cellery
 Following are the key concepts of Cellery:
-* Cell
-* Component
-* Ingress
-* Parameters
-* API
-* Dependencies
-* Resources
-* Probes
-* Scaling
+* [Cell](#cell) 
+* [Component](#component)
+* [Ingress](#ingress)
+* [Parameters](#parameters)
+* [API](#api)
+* [Dependencies](#dependencies)
+* [Resources](#resources)
+* [Probes](#probes)
+* [Scaling](#scaling)
 
 #### Cell
 A cell is a collection of components, grouped from design and implementation into deployment. A cell is independently 
