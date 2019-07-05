@@ -58,6 +58,9 @@ Following are the key concepts of Cellery:
 * Parameters
 * API
 * Dependencies
+* Resources
+* Probes
+* Scaling
 
 #### Cell
 A cell is a collection of components, grouped from design and implementation into deployment. A cell is independently 
@@ -95,8 +98,20 @@ An API represents a defined set of functions and procedures that the services of
 as resources (i.e ingresses). These could be made accessible internally or Globally.
 
 #### Dependencies
-A cell can depend on other cells. The components defines a set of cells that it depends on. 
-Celley ensures that the dependencies are met at the runtime. 
+A component can depend on other cells. The components defines a set of cells/components that it depends on. 
+Cellery ensures that the dependencies are met at the runtime.
+
+#### Resources
+When component is defined, it is possible to specify how much CPU and memory (RAM) each component needs. 
+When component have resource requests specified, the scheduler can make better decisions about which nodes to place component on.
+And when component have their limits specified, contention for resources on a node can be handled in a specified manner. 
+
+#### Probes
+Liveness and readiness probes can be defined for a component. The probes can be defined by the means of command, http get or as a tcp socket.
+
+#### Scaling 
+Each component within the cells can be scaled up or down. Cellery supports auto scaling with Horizontal pod autoscaler, 
+and Zero-scaling. 
 
 ## What's Next?
 - Check [Cellery syntax](https://github.com/wso2-cellery/sdk/blob/master/docs/cellery-syntax.md) which is based on this specification.
