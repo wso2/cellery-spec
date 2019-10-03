@@ -61,6 +61,7 @@ Following are the key concepts of Cellery:
 * [Resources](#resources)
 * [Probes](#probes)
 * [Scaling](#scaling)
+* [Volumes](#volumes)
 
 #### Cell
 A cell is a collection of components, grouped from design and implementation into deployment. A cell is independently 
@@ -112,6 +113,9 @@ Liveness and readiness probes can be defined for a component. The probes can be 
 #### Scaling 
 Each component within the cells can be scaled up or down. Cellery supports auto scaling with Horizontal pod autoscaler, 
 and Zero-scaling. 
+
+#### Volumes
+Volumes can be mounted to a component. Cellery support mounting Configuration, Secrets and Volume Claims to a component. 
 
 ## What's Next?
 - Check [Cellery syntax](https://github.com/wso2-cellery/sdk/blob/master/docs/cellery-syntax.md) which is based on this specification.
