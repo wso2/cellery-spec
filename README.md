@@ -53,6 +53,7 @@ Cellery overlaps with Docker Compose, Helm and Kubernetes YAML (plus….) Compar
 ### Concepts of Cellery
 Following are the key concepts of Cellery:
 * [Cell](#cell) 
+* [Composite](#composite) 
 * [Component](#component)
 * [Ingress](#ingress)
 * [Parameters](#parameters)
@@ -78,6 +79,10 @@ through a cell-gateway. These endpoints can expose APIs, events, or streams. Any
 serverless components offer that are not made available by the control point should be inaccessible from outside the 
 cell. Every component within the cell should be versioned. The cell should have a name and a version identifier. 
 The versions should change when the cell’s requirements and/or offers change.
+
+#### Composite
+A composite is a cut down version of a cell. A composite have 1:n components grouped. Main difference is that composite doesn't
+have network boundary like cells. There is no gateway in composites.
 
 #### Component
 A component represents business logic running in a container, serverless environment, or an existing runtime. 
